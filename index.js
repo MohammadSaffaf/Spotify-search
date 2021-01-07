@@ -25,40 +25,40 @@ app.get('/', (req, res) => {
     res.render('index', { title: "Homepage" })
 })
 
-app.get("/artist-search", (req, res) => {
+app.get('/artist-search', (req, res) => {
+  // console.log(req.query)
   spotifyApi
-      .searchArtists(req.query.SearchArtist)
+      .searchArtists(req.query.mySearch)
       .then(data => {
-          const spotifysearch = data.body.artists.items;
-          console.log('The received data from the API: ', spotifysearch);
-
-          res.render("artist", { spotifysearch , title: "Artistpage" });
+          // console.log('The received data from the API: ', data.body);
+          res.render('artist', { searchResult: data.body.artists.items,title: "Artistpage"  })
       })
       .catch(err => console.log('The error while searching artists occurred: ', err));
 })
 
-app.get("/albums-search", (req, res,next) => {
-spotifyApi.getArtistAlbums('fe45bf78c6114c3687683b4aeffe7187').then(
-  function(data) {
-    console.log('Artist albums', data.body);
-  },
-  function(err) {
-    console.error(err);
-  }
-);
+app.get('/albums/:artistID/:offset', (req, res) => {
+  console.log(req.params);
+  spotifyApi.getArtistAlbums(req.params.artistID, { limit: 20, offset: req.params.offset * 20 },).then(
+      (data) => {
+          // console.log('Artist albums', data.body);
+          res.render('albums', { title: "Albumspage" , albums: data.body, site: (req.params.offset * 1) + 1 })
+      },
+      (err) => {
+          console.error(err);
+      }
+  );
 })
+app.get('/tracks/:id', (req, res) => {
+  console.log(req.params.id)
+  spotifyApi.getAlbumTracks(req.params.id, { limit: 10, offset: 0 })
+      .then((data) => {
+          // console.log(data.body);
+          res.render('tracks', { title: "Trackspage" , tracks: data.body.items })
+      }, (err) => {
+          console.log('Something went wrong!', err);
+      });
 
-// app.get("/albums-search", (req, res) => {
-//   spotifyApi
-//       .searchAlbums(req.query.SearchAlbums)
-//       .then(data => {
-//           const spotifyAlbums = data.body.albums.items;
-//           console.log('The received data from the API: ', spotifyAlbums);
-
-//           res.render("albums", { spotifysearch , title: "Albumspage" });
-//       })
-//       .catch(err => console.log('The error while searching albums occurred: ', err));
-// })
+})
 
 
 
